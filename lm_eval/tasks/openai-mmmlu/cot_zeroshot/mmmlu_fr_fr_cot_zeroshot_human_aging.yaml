@@ -1,0 +1,7 @@
+"include": "_mmmlu_cot_zeroshot_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_human_aging
+"tag": "mmmlu_fr_fr_cot_zeroshot_other_tasks"
+"task": "mmmlu_fr_fr_cot_zeroshot_human_aging"
+"task_alias": "human aging (French)"
+"description": "Les questions suivantes sont des questions à choix multiples (avec réponses) sur human aging (French).\n\n"

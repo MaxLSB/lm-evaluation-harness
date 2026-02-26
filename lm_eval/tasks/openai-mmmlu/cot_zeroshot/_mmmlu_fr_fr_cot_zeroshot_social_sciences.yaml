@@ -1,0 +1,10 @@
+group: mmmlu_fr_fr_cot_zeroshot_social_sciences
+group_alias: "French social sciences (cot zeroshot)"
+task:
+  - mmmlu_fr_fr_cot_zeroshot_social_sciences_tasks
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: True
+
+metadata:
+  version: 1

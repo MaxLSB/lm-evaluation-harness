@@ -1,0 +1,7 @@
+"include": "_mmmlu_cot_zeroshot_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_human_sexuality
+"tag": "mmmlu_fr_fr_cot_zeroshot_social_sciences_tasks"
+"task": "mmmlu_fr_fr_cot_zeroshot_human_sexuality"
+"task_alias": "human sexuality (French)"
+"description": "Les questions suivantes sont des questions à choix multiples (avec réponses) sur human sexuality (French).\n\n"

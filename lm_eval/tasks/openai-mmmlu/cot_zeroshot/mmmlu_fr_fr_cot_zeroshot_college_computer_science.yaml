@@ -1,0 +1,7 @@
+"include": "_mmmlu_cot_zeroshot_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_college_computer_science
+"tag": "mmmlu_fr_fr_cot_zeroshot_stem_tasks"
+"task": "mmmlu_fr_fr_cot_zeroshot_college_computer_science"
+"task_alias": "college computer science (French)"
+"description": "Les questions suivantes sont des questions à choix multiples (avec réponses) sur college computer science (French).\n\n"

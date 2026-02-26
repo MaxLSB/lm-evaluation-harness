@@ -1,0 +1,13 @@
+group: mmmlu_fr_fr_cot_zeroshot
+group_alias: "French (cot zeroshot)"
+task:
+  - mmmlu_fr_fr_cot_zeroshot_stem
+  - mmmlu_fr_fr_cot_zeroshot_other
+  - mmmlu_fr_fr_cot_zeroshot_social_sciences
+  - mmmlu_fr_fr_cot_zeroshot_humanities
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: True
+
+metadata:
+  version: 1

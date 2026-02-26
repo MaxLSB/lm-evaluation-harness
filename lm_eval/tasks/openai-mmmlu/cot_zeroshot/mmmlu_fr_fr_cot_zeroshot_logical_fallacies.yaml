@@ -1,0 +1,7 @@
+"include": "_mmmlu_cot_zeroshot_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_logical_fallacies
+"tag": "mmmlu_fr_fr_cot_zeroshot_humanities_tasks"
+"task": "mmmlu_fr_fr_cot_zeroshot_logical_fallacies"
+"task_alias": "logical fallacies (French)"
+"description": "Les questions suivantes sont des questions à choix multiples (avec réponses) sur logical fallacies (French).\n\n"

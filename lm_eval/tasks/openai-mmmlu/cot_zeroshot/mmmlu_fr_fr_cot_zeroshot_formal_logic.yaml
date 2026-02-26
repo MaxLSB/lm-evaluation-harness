@@ -1,0 +1,7 @@
+"include": "_mmmlu_cot_zeroshot_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_formal_logic
+"tag": "mmmlu_fr_fr_cot_zeroshot_humanities_tasks"
+"task": "mmmlu_fr_fr_cot_zeroshot_formal_logic"
+"task_alias": "formal logic (French)"
+"description": "Les questions suivantes sont des questions à choix multiples (avec réponses) sur formal logic (French).\n\n"

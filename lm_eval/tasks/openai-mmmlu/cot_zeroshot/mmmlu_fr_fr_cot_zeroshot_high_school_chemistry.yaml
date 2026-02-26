@@ -1,0 +1,7 @@
+"include": "_mmmlu_cot_zeroshot_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_high_school_chemistry
+"tag": "mmmlu_fr_fr_cot_zeroshot_stem_tasks"
+"task": "mmmlu_fr_fr_cot_zeroshot_high_school_chemistry"
+"task_alias": "high school chemistry (French)"
+"description": "Les questions suivantes sont des questions à choix multiples (avec réponses) sur high school chemistry (French).\n\n"

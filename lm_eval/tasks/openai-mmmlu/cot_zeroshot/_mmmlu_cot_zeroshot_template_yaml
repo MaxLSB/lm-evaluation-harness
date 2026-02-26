@@ -1,0 +1,35 @@
+dataset_path: openai/MMMLU
+test_split: test
+output_type: generate_until
+doc_to_text: "Q : {{Question.strip()}}\n(A) {{A}} (B) {{B}} (C) {{C}} (D) {{D}}\nR : Réfléchissons étape par étape."
+doc_to_target: "({{Answer}})"
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "((?<=La réponse est )(.*)(?=.)|(?<=la réponse est )(.*)(?=.)|(?<=The answer is )(.*)(?=.)|(?<=answer is )(.*)(?=.))"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: "multi_choice_regex"
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+    - "Q :"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0

@@ -1,0 +1,7 @@
+"include": "_mmmlu_cot_zeroshot_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_nutrition
+"tag": "mmmlu_fr_fr_cot_zeroshot_other_tasks"
+"task": "mmmlu_fr_fr_cot_zeroshot_nutrition"
+"task_alias": "nutrition (French)"
+"description": "Les questions suivantes sont des questions à choix multiples (avec réponses) sur nutrition (French).\n\n"

@@ -1,0 +1,7 @@
+"include": "_mmmlu_cot_zeroshot_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_miscellaneous
+"tag": "mmmlu_fr_fr_cot_zeroshot_other_tasks"
+"task": "mmmlu_fr_fr_cot_zeroshot_miscellaneous"
+"task_alias": "miscellaneous (French)"
+"description": "Les questions suivantes sont des questions à choix multiples (avec réponses) sur miscellaneous (French).\n\n"
