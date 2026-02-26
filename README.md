@@ -25,7 +25,7 @@ Replace the following placeholders:
 ```bash
 lm_eval \
     --model vllm \
-    --model_args "pretrained=MODEL,dtype=bfloat16,tensor_parallel_size=TP,gpu_memory_utilization=0.7,max_model_len=36000,enforce_eager=False,think_end_token=</think>" \
+    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=TP,gpu_memory_utilization=0.7,max_model_len=36000,enforce_eager=False,think_end_token=</think>" \
     --apply_chat_template \
     --tasks mgsm_native_cot_fr,mmmlu_fr_fr_cot_zeroshot,gpqa_diamond_fr_cot_zeroshot,aime24_fr \
     --batch_size auto \
@@ -41,7 +41,7 @@ lm_eval \
 ```bash
 lm_eval \
     --model vllm \
-    --model_args "pretrained=MODEL,dtype=bfloat16,tensor_parallel_size=TP,gpu_memory_utilization=0.7,max_model_len=36000,enforce_eager=False,think_end_token=</think>" \
+    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=TP,gpu_memory_utilization=0.7,max_model_len=36000,enforce_eager=False,think_end_token=</think>" \
     --apply_chat_template \
     --tasks mgsm_native_cot_en,mmlu_flan_cot_zeroshot,aime24,gpqa_diamond_cot_zeroshot \
     --batch_size auto \
