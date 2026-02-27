@@ -6,13 +6,13 @@ training_split: train
 # Because huggingface dataset only has train split
 validation_split: train
 test_split: null
-doc_to_text: "Quelle est la bonne réponse à cette question : {{Question}}\nChoix :\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nRéfléchissons étape par étape : "
+doc_to_text: "Répondez à la question à choix multiples suivante. Sur la dernière ligne de votre réponse, placez la lettre de votre réponse finale dans \\boxed{} (par exemple, \\boxed{A}), en vous assurant que seule la lettre est à l'intérieur. Réfléchissez étape par étape avant de répondre.\n\n{{Question}}\nChoix :\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}"
 doc_to_target: answer
 filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=La réponse est )(.*)(?=.)"
+        regex_pattern: "(?<=The answer is )(.*)(?=.)"
       - function: "take_first"
   - name: "flexible-extract"
     filter:
@@ -20,7 +20,8 @@ filter_list:
         group_select: -1
         ignore_case: true
         ignore_punctuation: true
-        regex_pattern: "(\\([A-Z]\\))"
+        regex_pattern: "\\\\boxed\\{([A-D])\\}"
+        # regex_pattern: "(\\([A-Z]\\))"
       - function: "take_first"
 generation_kwargs:
   until:

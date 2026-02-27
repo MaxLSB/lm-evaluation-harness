@@ -7,6 +7,9 @@ venv/
 ENV/
 env/
 *.env
+eval_results/
+logs/
+.claude
 
 # Python bytecode and build artifacts
 __pycache__/

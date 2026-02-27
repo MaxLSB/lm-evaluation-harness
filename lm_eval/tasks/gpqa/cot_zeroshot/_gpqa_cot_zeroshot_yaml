@@ -6,7 +6,7 @@ training_split: train
 # Because huggingface dataset only has train split
 validation_split: train
 test_split: null
-doc_to_text: "What is the correct answer to this question:{{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nLet's think step by step: "
+doc_to_text: "Answer the following multiple choice question. On the last line of your response, place your final answer letter within \\boxed{} (e.g., \\boxed{A}), ensuring only the letter is inside. Think step by step before answering.\n\n{{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}"
 doc_to_target: answer
 filter_list:
   - name: "strict-match"
@@ -20,7 +20,8 @@ filter_list:
         group_select: -1
         ignore_case: true
         ignore_punctuation: true
-        regex_pattern: "(\\([A-Z]\\))"
+        regex_pattern: "\\\\boxed\\{([A-D])\\}"
+        # regex_pattern: "(\\([A-Z]\\))"
       - function: "take_first"
 generation_kwargs:
   until:

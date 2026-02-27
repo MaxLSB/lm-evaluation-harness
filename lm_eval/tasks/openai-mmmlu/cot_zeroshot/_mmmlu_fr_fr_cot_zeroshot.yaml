@@ -1,5 +1,5 @@
 group: mmmlu_fr_fr_cot_zeroshot
-group_alias: "French (cot zeroshot)"
+group_alias: "MMMLU French (cot zeroshot)"
 task:
   - mmmlu_fr_fr_cot_zeroshot_stem
   - mmmlu_fr_fr_cot_zeroshot_other

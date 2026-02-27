@@ -22,6 +22,10 @@ def _normalize_subject_name(name: str) -> str:
     return name
 
 
+def _add_choices(row):
+    return {"choices": [row["A"], row["B"], row["C"], row["D"]]}
+
+
 def _filter_subject(dataset, subject):
     normalized = subject
 
@@ -29,7 +33,7 @@ def _filter_subject(dataset, subject):
         row_subject = _normalize_subject_name(row["Subject"])
         return row_subject == target
 
-    return dataset.filter(_predicate)
+    return dataset.filter(_predicate).map(_add_choices)
 
 
 def _register_subject_filters():

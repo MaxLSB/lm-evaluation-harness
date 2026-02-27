@@ -17,14 +17,14 @@ def preprocess(text):
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _process_doc(doc):
         choices = [
-            preprocess(doc["Incorrect_Answer_1"]),
-            preprocess(doc["Incorrect_Answer_2"]),
-            preprocess(doc["Incorrect_Answer_3"]),
-            preprocess(doc["Correct_Answer"]),
+            preprocess(doc["Incorrect Answer 1"]),
+            preprocess(doc["Incorrect Answer 2"]),
+            preprocess(doc["Incorrect Answer 3"]),
+            preprocess(doc["Correct Answer"]),
         ]
 
         random.shuffle(choices)
-        correct_answer_index = choices.index(preprocess(doc["Correct_Answer"]))
+        correct_answer_index = choices.index(preprocess(doc["Correct Answer"]))
 
         out_doc = {
             "choice1": choices[0],
