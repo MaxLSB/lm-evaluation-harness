@@ -26,6 +26,7 @@ filter_list:
 generation_kwargs:
   until:
     - "</s>"
+    - "Question:"
   do_sample: false
   temperature: 0.0
 num_fewshot: 0
