@@ -15,38 +15,40 @@ uv pip install -e ".[vllm,hf,math,ifeval,api]"
 
 ### French benchmarks
 
-`mgsm_native_cot_fr`, `global_mmlu_fr_cot`, `gpqa_diamond_fr_cot_zeroshot`, `aime24_fr`
+`mgsm_rev2_native_cot_fr`, `global_mmlu_fr_cot`, `gpqa_diamond_fr_cot_zeroshot`, `aime24_fr`
 
 
 ```bash
 # Using vLLM offline (single process)
 nohup lm_eval \
     --model vllm \
-    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=2,gpu_memory_utilization=0.7,max_model_len=36000,enforce_eager=False,think_end_token=</think>" \
+    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=2,gpu_memory_utilization=0.7,max_model_len=32768,enforce_eager=False,think_end_token=</think>" \
     --apply_chat_template \
-    --tasks mgsm_native_cot_fr,global_mmlu_fr_cot,gpqa_diamond_fr_cot_zeroshot,aime24_fr \
+    --tasks mgsm_rev2_native_cot_fr,global_mmlu_fr_cot,gpqa_diamond_fr_cot_zeroshot,aime24_fr \
     --batch_size auto \
-    --gen_kwargs do_sample=True,temperature=0.6,top_p=0.95,top_k=20,min_p=0,max_gen_toks=32768 \
+    --gen_kwargs do_sample=True,temperature=0.6,top_p=0.95,top_k=20,min_p=0,max_gen_toks=30000 \
     --output_path eval_results/french_eval_result \
     --log_samples \
+    --n_runs 3 \
     > logs/french_bench.log 2>&1 &
 ```
 
 ### English benchmarks
 
-`mgsm_native_cot_en`, `global_mmlu_en_cot`, `gpqa_diamond_cot_zeroshot`, `aime24`
+`mgsm_rev2_native_cot_en`, `global_mmlu_en_cot`, `gpqa_diamond_cot_zeroshot`, `aime24`
 
 
 ```bash
 # Using vLLM offline (single process)
 nohup lm_eval \
     --model vllm \
-    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=2,gpu_memory_utilization=0.7,max_model_len=36000,enforce_eager=False,think_end_token=</think>" \
+    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=2,gpu_memory_utilization=0.7,max_model_len=32768,enforce_eager=False,think_end_token=</think>" \
     --apply_chat_template \
-    --tasks mgsm_native_cot_en,global_mmlu_en_cot,aime24,gpqa_diamond_cot_zeroshot \
+    --tasks mgsm_rev2_native_cot_en,global_mmlu_en_cot,aime24,gpqa_diamond_cot_zeroshot \
     --batch_size auto \
-    --gen_kwargs do_sample=True,temperature=0.6,top_p=0.95,top_k=20,min_p=0,max_gen_toks=32768 \
+    --gen_kwargs do_sample=True,temperature=0.6,top_p=0.95,top_k=20,min_p=0,max_gen_toks=30000 \
     --output_path eval_results/english_eval_result \
     --log_samples \
+    --n_runs 3 \
     > logs/english_bench.log 2>&1 &
 ```

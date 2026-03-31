@@ -3,7 +3,9 @@ import json
 import logging
 import os
 import textwrap
+from copy import deepcopy
 from functools import partial
+from statistics import mean, stdev
 
 from lm_eval._cli.subcommand import SubCommand
 from lm_eval._cli.utils import (
@@ -119,6 +121,13 @@ class Run(SubCommand):
 
         # Evaluation Settings
         eval_group = self._parser.add_argument_group("evaluation settings")
+        eval_group.add_argument(
+            "--n_runs",
+            type=int,
+            default=None,
+            metavar="<n>",
+            help="Number of times to run evaluation and average results (model loaded once).",
+        )
         eval_group.add_argument(
             "--num_fewshot",
             "-f",
@@ -346,6 +355,7 @@ class Run(SubCommand):
         # Create and validate config (most validation now occurs in EvaluationConfig)
         cfg = EvaluatorConfig.from_cli(args)
 
+        import lm_eval.api.registry
         from lm_eval import simple_evaluate
         from lm_eval.loggers import EvaluationTracker, WandbLogger
         from lm_eval.utils import handle_non_serializable, make_table
@@ -354,117 +364,293 @@ class Run(SubCommand):
         if cfg.wandb_args:
             wandb_logger = WandbLogger(cfg.wandb_args, cfg.wandb_config_args)
 
-        # Set up evaluation tracker
-        if cfg.output_path:
-            cfg.hf_hub_log_args["output_path"] = cfg.output_path
-
-        if os.environ.get("HF_TOKEN", None):
-            cfg.hf_hub_log_args["token"] = os.environ.get("HF_TOKEN")
-
-        evaluation_tracker = EvaluationTracker(**cfg.hf_hub_log_args)
+        # Log task selection (tasks already processed in config)
+        if cfg.include_path is not None:
+            eval_logger.info(f"Including path: {cfg.include_path}")
 
         # Create task manager (metadata already set up in config validation)
         task_manager = cfg.process_tasks(cfg.metadata)
 
-        # Validation warnings (keep these in CLI as they're logging-specific)
-        if "push_samples_to_hub" in cfg.hf_hub_log_args and not cfg.log_samples:
-            eval_logger.warning(
-                "Pushing samples to the Hub requires --log_samples to be set."
-            )
-
-        # Log task selection (tasks already processed in config)
-        if cfg.include_path is not None:
-            eval_logger.info(f"Including path: {cfg.include_path}")
         eval_logger.info(f"Selected Tasks: {cfg.tasks}")
 
-        # Run evaluation
-        results = simple_evaluate(
-            model=cfg.model,
-            model_args=cfg.model_args,
-            tasks=cfg.tasks,
-            num_fewshot=cfg.num_fewshot,
-            batch_size=cfg.batch_size,
-            max_batch_size=cfg.max_batch_size,
-            device=cfg.device,
-            use_cache=cfg.use_cache,
-            cache_requests=cfg.cache_requests.get("cache_requests", False),
-            rewrite_requests_cache=cfg.cache_requests.get(
-                "rewrite_requests_cache", False
-            ),
-            delete_requests_cache=cfg.cache_requests.get(
-                "delete_requests_cache", False
-            ),
-            limit=cfg.limit,
-            samples=cfg.samples,
-            check_integrity=cfg.check_integrity,
-            write_out=cfg.write_out,
-            log_samples=cfg.log_samples,
-            evaluation_tracker=evaluation_tracker,
-            system_instruction=cfg.system_instruction,
-            apply_chat_template=cfg.apply_chat_template,
-            fewshot_as_multiturn=cfg.fewshot_as_multiturn,
-            gen_kwargs=cfg.gen_kwargs,
-            task_manager=task_manager,
-            verbosity=cfg.verbosity,
-            predict_only=cfg.predict_only,
-            random_seed=cfg.seed[0] if cfg.seed else None,
-            numpy_random_seed=cfg.seed[1] if cfg.seed else None,
-            torch_random_seed=cfg.seed[2] if cfg.seed else None,
-            fewshot_random_seed=cfg.seed[3] if cfg.seed else None,
-            confirm_run_unsafe_code=cfg.confirm_run_unsafe_code,
-            metadata=cfg.metadata,
-        )
+        n_runs = cfg.n_runs if cfg.n_runs and cfg.n_runs > 1 else 1
 
-        # Process results
-        if results is not None:
-            if cfg.log_samples:
-                samples = results.pop("samples")
-
-            dumped = json.dumps(
-                results, indent=2, default=handle_non_serializable, ensure_ascii=False
+        if n_runs > 1:
+            # Initialize model once for all runs
+            eval_logger.info(
+                f"Initializing model once for {n_runs} runs: {cfg.model}"
             )
-            if cfg.show_config:
-                print(dumped)
+            lm = lm_eval.api.registry.get_model(cfg.model).create_from_arg_obj(
+                cfg.model_args,
+                {
+                    "batch_size": cfg.batch_size,
+                    "max_batch_size": cfg.max_batch_size,
+                    "device": cfg.device,
+                },
+            )
+            model_arg = lm
+        else:
+            model_arg = cfg.model
 
-            batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
+        def _run_single(run_idx: int, output_path: str | None) -> dict:
+            """Run a single evaluation and return results."""
+            # Set up evaluation tracker for this run
+            run_hf_hub_log_args = dict(cfg.hf_hub_log_args)
+            if output_path:
+                run_hf_hub_log_args["output_path"] = output_path
+            if os.environ.get("HF_TOKEN", None):
+                run_hf_hub_log_args["token"] = os.environ.get("HF_TOKEN")
+            run_tracker = EvaluationTracker(**run_hf_hub_log_args)
 
-            # W&B logging
-            if cfg.wandb_args:
-                try:
-                    wandb_logger.post_init(results)
-                    wandb_logger.log_eval_result()
-                    if cfg.log_samples:
-                        wandb_logger.log_eval_samples(samples)
-                except Exception as e:
-                    eval_logger.info(f"Logging to W&B failed: {e}")
-
-            # Save results
-            evaluation_tracker.save_results_aggregated(
-                results=results, samples=samples if cfg.log_samples else None
+            # Vary seeds per run for statistical independence
+            seeds = cfg.seed if cfg.seed else [None, None, None, None]
+            run_results = simple_evaluate(
+                model=model_arg,
+                model_args=cfg.model_args,
+                tasks=cfg.tasks,
+                num_fewshot=cfg.num_fewshot,
+                batch_size=cfg.batch_size,
+                max_batch_size=cfg.max_batch_size,
+                device=cfg.device,
+                use_cache=cfg.use_cache,
+                cache_requests=cfg.cache_requests.get("cache_requests", False),
+                rewrite_requests_cache=cfg.cache_requests.get(
+                    "rewrite_requests_cache", False
+                ),
+                delete_requests_cache=cfg.cache_requests.get(
+                    "delete_requests_cache", False
+                ),
+                limit=cfg.limit,
+                samples=cfg.samples,
+                check_integrity=cfg.check_integrity,
+                write_out=cfg.write_out,
+                log_samples=cfg.log_samples,
+                evaluation_tracker=run_tracker,
+                system_instruction=cfg.system_instruction,
+                apply_chat_template=cfg.apply_chat_template,
+                fewshot_as_multiturn=cfg.fewshot_as_multiturn,
+                gen_kwargs=cfg.gen_kwargs,
+                task_manager=task_manager,
+                verbosity=cfg.verbosity,
+                predict_only=cfg.predict_only,
+                random_seed=seeds[0] + run_idx if seeds[0] is not None else None,
+                numpy_random_seed=seeds[1] + run_idx if seeds[1] is not None else None,
+                torch_random_seed=seeds[2] + run_idx if seeds[2] is not None else None,
+                fewshot_random_seed=seeds[3] + run_idx if seeds[3] is not None else None,
+                confirm_run_unsafe_code=cfg.confirm_run_unsafe_code,
+                metadata=cfg.metadata,
             )
 
-            if cfg.log_samples:
-                for task_name, _ in results["configs"].items():
-                    evaluation_tracker.save_results_samples(
-                        task_name=task_name, samples=samples[task_name]
+            if run_results is not None:
+                run_samples = None
+                if cfg.log_samples:
+                    run_samples = run_results.pop("samples")
+
+                run_tracker.save_results_aggregated(
+                    results=run_results, samples=run_samples if cfg.log_samples else None
+                )
+
+                if cfg.log_samples:
+                    for task_name in run_results["configs"]:
+                        run_tracker.save_results_samples(
+                            task_name=task_name, samples=run_samples[task_name]
+                        )
+
+                if run_samples is not None:
+                    run_results["samples"] = run_samples
+
+            return run_results
+
+        def _average_results(all_results: list[dict]) -> dict:
+            """Average numeric metrics across runs.
+
+            - Value: mean across runs
+            - Stderr: replaced with stdev/sqrt(n) across runs (cross-run variability)
+            - _std fields: raw stdev across runs
+            """
+            avg = deepcopy(all_results[0])
+            n = len(all_results)
+            for task in avg.get("results", {}):
+                for key in list(avg["results"][task].keys()):
+                    val = avg["results"][task][key]
+                    if not isinstance(val, (int, float)):
+                        continue
+                    vals = [r["results"][task].get(key, val) for r in all_results]
+                    avg["results"][task][key] = mean(vals)
+                    if n > 1 and "_stderr," not in key:
+                        std_key = key.replace(",", "_std,") if "," in key else key + "_std"
+                        avg["results"][task][std_key] = stdev(vals)
+                        # Replace bootstrapped stderr with cross-run stderr
+                        if "," in key:
+                            stderr_key = key.replace(",", "_stderr,")
+                        else:
+                            stderr_key = key + "_stderr"
+                        if stderr_key in avg["results"][task]:
+                            avg["results"][task][stderr_key] = stdev(vals) / n**0.5
+            return avg
+
+        # --- Main execution path ---
+        if n_runs == 1:
+            # Standard single-run path (unchanged behaviour)
+            hf_hub_log_args = dict(cfg.hf_hub_log_args)
+            if cfg.output_path:
+                hf_hub_log_args["output_path"] = cfg.output_path
+            if os.environ.get("HF_TOKEN", None):
+                hf_hub_log_args["token"] = os.environ.get("HF_TOKEN")
+            evaluation_tracker = EvaluationTracker(**hf_hub_log_args)
+
+            if "push_samples_to_hub" in hf_hub_log_args and not cfg.log_samples:
+                eval_logger.warning(
+                    "Pushing samples to the Hub requires --log_samples to be set."
+                )
+
+            results = simple_evaluate(
+                model=model_arg,
+                model_args=cfg.model_args,
+                tasks=cfg.tasks,
+                num_fewshot=cfg.num_fewshot,
+                batch_size=cfg.batch_size,
+                max_batch_size=cfg.max_batch_size,
+                device=cfg.device,
+                use_cache=cfg.use_cache,
+                cache_requests=cfg.cache_requests.get("cache_requests", False),
+                rewrite_requests_cache=cfg.cache_requests.get(
+                    "rewrite_requests_cache", False
+                ),
+                delete_requests_cache=cfg.cache_requests.get(
+                    "delete_requests_cache", False
+                ),
+                limit=cfg.limit,
+                samples=cfg.samples,
+                check_integrity=cfg.check_integrity,
+                write_out=cfg.write_out,
+                log_samples=cfg.log_samples,
+                evaluation_tracker=evaluation_tracker,
+                system_instruction=cfg.system_instruction,
+                apply_chat_template=cfg.apply_chat_template,
+                fewshot_as_multiturn=cfg.fewshot_as_multiturn,
+                gen_kwargs=cfg.gen_kwargs,
+                task_manager=task_manager,
+                verbosity=cfg.verbosity,
+                predict_only=cfg.predict_only,
+                random_seed=cfg.seed[0] if cfg.seed else None,
+                numpy_random_seed=cfg.seed[1] if cfg.seed else None,
+                torch_random_seed=cfg.seed[2] if cfg.seed else None,
+                fewshot_random_seed=cfg.seed[3] if cfg.seed else None,
+                confirm_run_unsafe_code=cfg.confirm_run_unsafe_code,
+                metadata=cfg.metadata,
+            )
+
+            if results is not None:
+                if cfg.log_samples:
+                    samples = results.pop("samples")
+
+                dumped = json.dumps(
+                    results, indent=2, default=handle_non_serializable, ensure_ascii=False
+                )
+                if cfg.show_config:
+                    print(dumped)
+
+                batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
+
+                if cfg.wandb_args:
+                    try:
+                        wandb_logger.post_init(results)
+                        wandb_logger.log_eval_result()
+                        if cfg.log_samples:
+                            wandb_logger.log_eval_samples(samples)
+                    except Exception as e:
+                        eval_logger.info(f"Logging to W&B failed: {e}")
+
+                evaluation_tracker.save_results_aggregated(
+                    results=results, samples=samples if cfg.log_samples else None
+                )
+
+                if cfg.log_samples:
+                    for task_name, _ in results["configs"].items():
+                        evaluation_tracker.save_results_samples(
+                            task_name=task_name, samples=samples[task_name]
+                        )
+
+                if (
+                    evaluation_tracker.push_results_to_hub
+                    or evaluation_tracker.push_samples_to_hub
+                ):
+                    evaluation_tracker.recreate_metadata_card()
+
+                cfg.model_args.pop("trust_remote_code", None)
+                print(
+                    f"{cfg.model} ({cfg.model_args}), gen_kwargs: ({cfg.gen_kwargs}), "
+                    f"limit: {cfg.limit}, num_fewshot: {cfg.num_fewshot}, "
+                    f"batch_size: {cfg.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
+                )
+                print(make_table(results))
+                if "groups" in results:
+                    print(make_table(results, "groups"))
+
+                if cfg.wandb_args:
+                    wandb_logger.run.finish()
+
+        else:
+            # Multi-run path: run N times, save per-run results, then average
+            if "push_samples_to_hub" in cfg.hf_hub_log_args and not cfg.log_samples:
+                eval_logger.warning(
+                    "Pushing samples to the Hub requires --log_samples to be set."
+                )
+
+            all_results = []
+            for run_idx in range(n_runs):
+                eval_logger.info(f"Starting run {run_idx + 1}/{n_runs}")
+                run_output_path = (
+                    os.path.join(cfg.output_path, f"run_{run_idx}")
+                    if cfg.output_path
+                    else None
+                )
+                run_results = _run_single(run_idx, run_output_path)
+                if run_results is not None:
+                    # Strip samples before averaging (already saved per-run)
+                    run_results.pop("samples", None)
+                    all_results.append(run_results)
+
+            if all_results:
+                results = _average_results(all_results)
+
+                batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
+
+                # Save averaged results
+                if cfg.output_path:
+                    avg_path = os.path.join(cfg.output_path, "results_avg.json")
+                    os.makedirs(cfg.output_path, exist_ok=True)
+                    with open(avg_path, "w", encoding="utf-8") as f:
+                        json.dump(
+                            results,
+                            f,
+                            indent=2,
+                            default=handle_non_serializable,
+                            ensure_ascii=False,
+                        )
+                    eval_logger.info(f"Averaged results saved to {avg_path}")
+
+                if cfg.show_config:
+                    print(
+                        json.dumps(
+                            results,
+                            indent=2,
+                            default=handle_non_serializable,
+                            ensure_ascii=False,
+                        )
                     )
 
-            if (
-                evaluation_tracker.push_results_to_hub
-                or evaluation_tracker.push_samples_to_hub
-            ):
-                evaluation_tracker.recreate_metadata_card()
+                cfg.model_args.pop("trust_remote_code", None)
+                print(
+                    f"{cfg.model} ({cfg.model_args}), gen_kwargs: ({cfg.gen_kwargs}), "
+                    f"limit: {cfg.limit}, num_fewshot: {cfg.num_fewshot}, "
+                    f"batch_size: {cfg.batch_size}{f' ({batch_sizes})' if batch_sizes else ''} "
+                    f"[averaged over {n_runs} runs]"
+                )
+                print(make_table(results))
+                if "groups" in results:
+                    print(make_table(results, "groups"))
 
-            # Print results
-            cfg.model_args.pop("trust_remote_code", None)
-            print(
-                f"{cfg.model} ({cfg.model_args}), gen_kwargs: ({cfg.gen_kwargs}), "
-                f"limit: {cfg.limit}, num_fewshot: {cfg.num_fewshot}, "
-                f"batch_size: {cfg.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
-            )
-            print(make_table(results))
-            if "groups" in results:
-                print(make_table(results, "groups"))
-
-            if cfg.wandb_args:
-                wandb_logger.run.finish()
+                if cfg.wandb_args:
+                    wandb_logger.run.finish()

@@ -11,7 +11,6 @@ from time import sleep
 from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 import jinja2
-import ray
 from more_itertools import distribute
 from packaging.version import parse as parse_version
 from tqdm import tqdm
@@ -436,6 +435,8 @@ class VLLM(TemplateLM):
                 "list[SamplingParams]", [sampling_params] * len(requests)
             )
         if self.data_parallel_size > 1 and not self.V1:
+            import ray  # only needed for data_parallel_size > 1
+
             # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973

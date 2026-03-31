@@ -1,0 +1,24 @@
+dataset_name: sw
+doc_to_target: '{{answer_number|string}}'
+doc_to_text: '{{"Swali: "+question+"\nJibu la Hatua kwa Hatua:"}}'
+filter_list:
+- filter:
+  - function: regex
+    regex_pattern: Jibu ni (\-?[0-9\.\,]+)
+  - function: take_first
+  name: strict-match
+- filter:
+  - function: regex
+    group_select: -1
+    regex_pattern: (-?[$0-9.,]{2,})|(-?[0-9]+)
+  - function: take_first
+  - function: normalize_number
+  name: flexible-extract
+generation_kwargs:
+  do_sample: false
+  until:
+  - 'Swali:'
+  - </s>
+  - <|im_end|>
+include: cot_yaml
+task: mgsm_rev2_native_cot_sw

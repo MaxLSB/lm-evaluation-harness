@@ -1,0 +1,24 @@
+dataset_name: fr
+doc_to_target: '{{answer_number|string}}'
+doc_to_text: "{{question}}\nVeuillez raisonner étape par étape, et mettre votre réponse finale dans \\boxed{}."
+filter_list:
+- filter:
+  - function: regex
+    regex_pattern: La réponse est (\-?[0-9\.\,]+)
+  - function: take_first
+  name: strict-match
+- filter:
+  - function: regex
+    group_select: -1
+    regex_pattern: "\\\\boxed\\{(\\-?[0-9\\.,]+)\\}"
+  - function: take_first
+  - function: normalize_number
+  name: flexible-extract
+generation_kwargs:
+  do_sample: false
+  until:
+  - 'Question :'
+  - </s>
+  - <|im_end|>
+include: cot_yaml
+task: mgsm_rev2_native_cot_fr
