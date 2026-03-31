@@ -480,13 +480,6 @@ class Run(SubCommand):
                     if n > 1 and "_stderr," not in key:
                         std_key = key.replace(",", "_std,") if "," in key else key + "_std"
                         avg["results"][task][std_key] = stdev(vals)
-                        # Replace bootstrapped stderr with cross-run stderr
-                        if "," in key:
-                            stderr_key = key.replace(",", "_stderr,")
-                        else:
-                            stderr_key = key + "_stderr"
-                        if stderr_key in avg["results"][task]:
-                            avg["results"][task][stderr_key] = stdev(vals) / n**0.5
             return avg
 
         # --- Main execution path ---
