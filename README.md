@@ -8,14 +8,16 @@ uv venv .venv --python 3.11
 source .venv/bin/activate
 
 # Install the package with vllm backend (fast eval) and api extras (for online server mode)
-uv pip install -e ".[vllm,hf,math,ifeval,api]"
+uv pip install -e ".[vllm,hf,math,ifeval]"
 ```
 
 ## Evaluation Benchmarks
 
 ### French benchmarks
 
-`mgsm_rev2_native_cot_fr`, `global_mmlu_fr_cot`, `gpqa_diamond_fr_cot_zeroshot`, `aime24_fr`
+`mgsm_rev2_native_cot_fr`, `global_mmlu_fr_cot`, `gpqa_diamond_fr_cot_zeroshot`, `aime24_fr`, `mhumanevalplus_fr`
+
+> `mhumanevalplus_fr` requires: `HF_ALLOW_CODE_EVAL=1`, `--confirm_run_unsafe_code`, and `think_end_token=</think>` in `--model_args` for reasoning models.
 
 
 ```bash
@@ -35,7 +37,9 @@ nohup lm_eval \
 
 ### English benchmarks
 
-`mgsm_rev2_native_cot_en`, `global_mmlu_en_cot`, `gpqa_diamond_cot_zeroshot`, `aime24`
+`mgsm_rev2_native_cot_en`, `global_mmlu_en_cot`, `gpqa_diamond_cot_zeroshot`, `aime24`, `mhumanevalplus_en`
+
+> `mhumanevalplus_en` requires: `HF_ALLOW_CODE_EVAL=1`, `--confirm_run_unsafe_code`, and `think_end_token=</think>` in `--model_args` for reasoning models.
 
 
 ```bash

@@ -1,0 +1,8 @@
+group: mhumanevalplus
+task:
+  - mhumanevalplus_en
+  - mhumanevalplus_fr
+  - mhumanevalplus_de
+  - mhumanevalplus_es
+  - mhumanevalplus_sw
+  - mhumanevalplus_zh

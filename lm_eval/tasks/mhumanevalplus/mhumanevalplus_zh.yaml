@@ -1,0 +1,4 @@
+include: _default_template.yaml
+task: mhumanevalplus_zh
+test_split: zh
+doc_to_text: "编写以下问题的解决方案，并确保它通过测试：\n```python\n{{ prompt }}\n```\n"
