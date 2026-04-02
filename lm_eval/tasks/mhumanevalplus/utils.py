@@ -28,10 +28,10 @@ def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str
 
 
 def _extract_code_from_response(response: str) -> str:
-    """Extract code from markdown fences in a reasoning model response."""
+    """Extract the last code block from markdown fences in a model response."""
     for marker in ("```python", "```py", "```"):
         if marker in response:
-            code = response.split(marker, 1)[1]
+            code = response.rsplit(marker, 1)[1]
             if "```" in code:
                 code = code.split("```", 1)[0]
             return code.strip("\n")
