@@ -17,14 +17,14 @@ uv pip install -e ".[vllm,hf,math,ifeval]"
 
 `mgsm_rev2_native_cot_fr`, `global_mmlu_fr_cot`, `gpqa_diamond_fr_cot_zeroshot`, `aime24_fr`, `mhumanevalplus_fr`
 
-> `mhumanevalplus_fr` requires: `HF_ALLOW_CODE_EVAL=1`, `--confirm_run_unsafe_code`, and `think_end_token=</think>` in `--model_args` for reasoning models.
+> `mhumanevalplus_fr` requires: `HF_ALLOW_CODE_EVAL=1`, `--confirm_run_unsafe_code` in `--model_args` for reasoning models.
 
 
 ```bash
 # Using vLLM offline (single process)
 nohup lm_eval \
     --model vllm \
-    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=2,gpu_memory_utilization=0.7,max_model_len=32768,enforce_eager=False,think_end_token=</think>" \
+    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=2,gpu_memory_utilization=0.7,max_model_len=32768" \
     --apply_chat_template \
     --tasks mgsm_rev2_native_cot_fr,global_mmlu_fr_cot,gpqa_diamond_fr_cot_zeroshot,aime24_fr \
     --batch_size auto \
@@ -39,14 +39,14 @@ nohup lm_eval \
 
 `mgsm_rev2_native_cot_en`, `global_mmlu_en_cot`, `gpqa_diamond_cot_zeroshot`, `aime24`, `mhumanevalplus_en`
 
-> `mhumanevalplus_en` requires: `HF_ALLOW_CODE_EVAL=1`, `--confirm_run_unsafe_code`, and `think_end_token=</think>` in `--model_args` for reasoning models.
+> `mhumanevalplus_en` requires: `HF_ALLOW_CODE_EVAL=1`, `--confirm_run_unsafe_code` in `--model_args` for reasoning models.
 
 
 ```bash
 # Using vLLM offline (single process)
 nohup lm_eval \
     --model vllm \
-    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=2,gpu_memory_utilization=0.7,max_model_len=32768,enforce_eager=False,think_end_token=</think>" \
+    --model_args "pretrained=allenai/Olmo-3-7B-Think-SFT,dtype=bfloat16,tensor_parallel_size=2,gpu_memory_utilization=0.7,max_model_len=32768" \
     --apply_chat_template \
     --tasks mgsm_rev2_native_cot_en,global_mmlu_en_cot,aime24,gpqa_diamond_cot_zeroshot \
     --batch_size auto \
