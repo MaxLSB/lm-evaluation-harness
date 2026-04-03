@@ -27,18 +27,47 @@ def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str
     return [[doc["prompt"] + r for r in resp] for resp, doc in zip(resps, docs)]
 
 
-def _extract_code_from_response(response: str) -> str:
-    """Extract the last code block from markdown fences in a model response."""
+def _extract_code_from_response(response: str, entry_point: str = "") -> str:
+    """Extract the code block most likely to be the solution from markdown fences."""
+    # Collect all code blocks
+    blocks = []
     for marker in ("```python", "```py", "```"):
-        if marker in response:
-            code = response.rsplit(marker, 1)[1]
-            if "```" in code:
-                code = code.split("```", 1)[0]
-            return code.strip("\n")
-    return response
+        for part in response.split(marker)[1:]:
+            if "```" in part:
+                code = part.split("```", 1)[0].strip("\n")
+            else:
+                code = part.strip("\n")
+            blocks.append(code)
+        if blocks:
+            break
+
+    if not blocks:
+        return response
+
+    # 1. Last block with the exact entry point definition
+    if entry_point:
+        for block in reversed(blocks):
+            if f"def {entry_point}" in block:
+                return block
+
+    # 2. Last block containing any function definition
+    for block in reversed(blocks):
+        if "def " in block:
+            return block
+
+    # 3. Last block that doesn't look like a test snippet
+    for block in reversed(blocks):
+        stripped = block.strip()
+        if not stripped.startswith(("print(", "assert ", "# Test")):
+            return block
+
+    return blocks[-1]
 
 
 def build_predictions_instruct(
     resps: list[list[str]], docs: list[dict]
 ) -> list[list[str]]:
-    return [[_extract_code_from_response(r) for r in resp] for resp, doc in zip(resps, docs)]
+    return [
+        [_extract_code_from_response(r, doc.get("entry_point", "")) for r in resp]
+        for resp, doc in zip(resps, docs)
+    ]
