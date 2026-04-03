@@ -1,4 +1,4 @@
 include: _default_template.yaml
 task: mhumanevalplus_es
 test_split: es
-doc_to_text: "Escribe una solución al siguiente problema y asegúrate de que pase las pruebas:\n```python\n{{ prompt }}\n```\n"
+doc_to_text: "Escribe una solución al siguiente problema y asegúrate de que pase las pruebas:\n```python\n{{ prompt }}\n```\nPor favor, razona paso a paso y coloca tu respuesta final dentro de un bloque de código ```python.\n"

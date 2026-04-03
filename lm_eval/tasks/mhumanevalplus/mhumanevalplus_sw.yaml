@@ -1,4 +1,4 @@
 include: _default_template.yaml
 task: mhumanevalplus_sw
 test_split: sw
-doc_to_text: "Andika suluhisho la tatizo lifuatalo na uhakikishe kuwa linapita majaribio:\n```python\n{{ prompt }}\n```\n"
+doc_to_text: "Andika suluhisho la tatizo lifuatalo na uhakikishe kuwa linapita majaribio:\n```python\n{{ prompt }}\n```\nTafadhali fikiria hatua kwa hatua, na uweke jibu lako la mwisho ndani ya block ya msimbo ```python.\n"
