@@ -470,16 +470,17 @@ class Run(SubCommand):
             """
             avg = deepcopy(all_results[0])
             n = len(all_results)
-            for task in avg.get("results", {}):
-                for key in list(avg["results"][task].keys()):
-                    val = avg["results"][task][key]
-                    if not isinstance(val, (int, float)):
-                        continue
-                    vals = [r["results"][task].get(key, val) for r in all_results]
-                    avg["results"][task][key] = mean(vals)
-                    if n > 1 and "_stderr," not in key:
-                        std_key = key.replace(",", "_std,") if "," in key else key + "_std"
-                        avg["results"][task][std_key] = stdev(vals)
+            for section in ("results", "groups"):
+                for task in avg.get(section, {}):
+                    for key in list(avg[section][task].keys()):
+                        val = avg[section][task][key]
+                        if not isinstance(val, (int, float)):
+                            continue
+                        vals = [r[section][task].get(key, val) for r in all_results]
+                        avg[section][task][key] = mean(vals)
+                        if n > 1 and "_stderr," not in key:
+                            std_key = key.replace(",", "_std,") if "," in key else key + "_std"
+                            avg[section][task][std_key] = stdev(vals)
             return avg
 
         # --- Main execution path ---
