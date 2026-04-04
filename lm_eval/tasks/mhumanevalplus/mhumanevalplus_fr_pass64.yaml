@@ -1,0 +1,16 @@
+include: mhumanevalplus_fr.yaml
+task: mhumanevalplus_fr_pass64
+repeats: 64
+metric_list:
+  - metric: !function utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [1, 64]
+generation_kwargs:
+  until:
+    - "<|im_end|>"
+    - "<|endoftext|>"
+  max_gen_toks: 30000
+  do_sample: true
+  temperature: 0.6
+  top_p: 0.95

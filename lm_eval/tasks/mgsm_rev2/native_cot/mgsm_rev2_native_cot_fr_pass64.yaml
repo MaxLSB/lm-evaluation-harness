@@ -1,0 +1,23 @@
+include: mgsm_rev2_native_cot_fr.yaml
+task: mgsm_rev2_native_cot_fr_pass64
+repeats: 64
+filter_list:
+  - name: "pass64"
+    filter:
+      - function: regex
+        group_select: -1
+        regex_pattern: "\\\\boxed\\{(\\-?[0-9\\.,]+)\\}"
+      - function: normalize_number
+generation_kwargs:
+  do_sample: true
+  temperature: 0.6
+  top_p: 0.95
+  until:
+    - 'Question :'
+    - </s>
+    - <|im_end|>
+metric_list:
+  - metric: !function pass64_utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [1, 64]

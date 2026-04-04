@@ -1,4 +1,5 @@
 import re
+from math import comb
 from typing import Dict, List
 
 
@@ -229,3 +230,54 @@ def strip_string(string):
     string = fix_a_slash_b(string)
 
     return string
+
+
+def _compute_pass_at_k(n: int, c: int, k: int) -> float:
+    """Unbiased estimator for pass@k."""
+    if n - c < k:
+        return 1.0
+    return 1.0 - comb(n - c, k) / comb(n, k)
+
+
+def _extract_answer(response: str) -> str:
+    """Extract answer from a single response using boxed/$...$ logic."""
+    indices = [pos for pos, char in enumerate(response) if char == "$"]
+    if len(indices) <= 1:
+        answer = response
+    else:
+        answer = response[indices[0] + 1 : indices[-1]]
+
+    boxed_answer = last_boxed_only_string(response)
+    if boxed_answer is not None:
+        try:
+            boxed_content = remove_boxed(boxed_answer)
+            if boxed_content is not None:
+                answer = boxed_content
+        except (AssertionError, IndexError):
+            pass
+
+    return answer
+
+
+def extract_boxed_answers(resps, docs):
+    """Filter function: extract boxed answer from each response in each instance."""
+    return [
+        [_extract_answer(resp) for resp in inst_resps]
+        for inst_resps in resps
+    ]
+
+
+def pass_at_k(references, predictions, k=None):
+    """Compute pass@k for AIME math tasks.
+
+    references: [gold_answer_str]
+    predictions: [[extracted_answer_0, ..., extracted_answer_N]]
+    k: list of k values, e.g. [1, 64]
+    """
+    if k is None:
+        k = [1]
+    gold = str(references[0]).strip()
+    answers = predictions[0]
+    n = len(answers)
+    c = sum(1 for a in answers if is_equiv(str(a), gold))
+    return {f"pass@{ki}": _compute_pass_at_k(n, c, ki) for ki in k}
