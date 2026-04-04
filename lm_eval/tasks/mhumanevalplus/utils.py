@@ -23,6 +23,23 @@ def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] 
     return res[0]
 
 
+def process_results_pass64(doc, results):
+    """Process all repeated results for pass@k computation.
+
+    The filter build_predictions_instruct groups all 64 responses into a single
+    instance, so results = [[code_0, code_1, ..., code_63]] (1 element containing
+    all solutions).
+    """
+    test_case = doc["test"] + "\ncheck(" + doc["entry_point"] + ")"
+    # Flatten: results is [[sol_0, ..., sol_63]] from the filter
+    if len(results) == 1 and isinstance(results[0], list):
+        solutions = results[0]
+    else:
+        solutions = [r[0] if isinstance(r, list) else r for r in results]
+    # pass_at_k expects references=[test_case], predictions=[[sol_0, ..., sol_63]]
+    return pass_at_k(references=[test_case], predictions=[solutions], k=[1, 64])
+
+
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
     return [[doc["prompt"] + r for r in resp] for resp, doc in zip(resps, docs)]
 

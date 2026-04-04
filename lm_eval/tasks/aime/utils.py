@@ -267,6 +267,18 @@ def extract_boxed_answers(resps, docs):
     ]
 
 
+def process_results_pass64(doc, results):
+    """Process all repeated results for pass@k computation."""
+    answer_key = next(k for k in doc.keys() if k.lower() == "answer")
+    gold = str(doc[answer_key]).strip()
+    # Filter groups all 64 responses into a single instance: results = [[ans_0, ..., ans_63]]
+    if len(results) == 1 and isinstance(results[0], list):
+        answers = results[0]
+    else:
+        answers = [r[0] if isinstance(r, list) else r for r in results]
+    return pass_at_k(references=[gold], predictions=[answers], k=[1, 64])
+
+
 def pass_at_k(references, predictions, k=None):
     """Compute pass@k for AIME math tasks.
 

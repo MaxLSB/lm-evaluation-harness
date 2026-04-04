@@ -25,10 +25,13 @@ filter_list:
     filter:
       - function: "custom"
         filter_fn: !function utils.extract_boxed_answers
+process_results: !function utils.process_results_pass64
 metric_list:
-  - metric: !function utils.pass_at_k
+  - metric: pass@1
     aggregation: mean
     higher_is_better: true
-    k: [1, 64]
+  - metric: pass@64
+    aggregation: mean
+    higher_is_better: true
 metadata:
   version: 0.0
