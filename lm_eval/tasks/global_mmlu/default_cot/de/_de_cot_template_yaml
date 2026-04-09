@@ -8,7 +8,7 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=The answer is )(.*)(?=.)"
+        regex_pattern: "(?<=Die Antwort ist )(.*)(?=.)"
       - function: "take_first"
   - name: "flexible-extract"
     filter:

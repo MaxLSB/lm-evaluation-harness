@@ -1,6 +1,6 @@
 dataset_name: es
 doc_to_target: '{{answer_number|string}}'
-doc_to_text: '{{"Pregunta: "+question+"\nRespuesta paso a paso:"}}'
+doc_to_text: "{{question}}\nPor favor, razona paso a paso y coloca tu respuesta final dentro de \\boxed{}."
 filter_list:
 - filter:
   - function: regex
@@ -10,7 +10,7 @@ filter_list:
 - filter:
   - function: regex
     group_select: -1
-    regex_pattern: (-?[$0-9.,]{2,})|(-?[0-9]+)
+    regex_pattern: "\\\\boxed\\{(\\-?[0-9\\.,]+)\\}"
   - function: take_first
   - function: normalize_number
   name: flexible-extract
