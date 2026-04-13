@@ -1,16 +1,16 @@
 dataset_name: sw
 doc_to_target: '{{answer_number|string}}'
-doc_to_text: "{{question}}\nTafadhali fikiria hatua kwa hatua, na uweke jibu lako la mwisho ndani ya \\boxed{}."
+doc_to_text: "Suluhisha tatizo hili la hesabu. Toa hatua za mantiki kabla ya kutoa jibu la mwisho kwenye mstari wa mwisho peke yake katika muundo wa \"Jibu:\". Usiongeze chochote kingine isipokuwa jibu la integer baada ya \"Jibu:\".\n{{question}}"
 filter_list:
 - filter:
   - function: regex
-    regex_pattern: Jibu ni (\-?[0-9\.\,]+)
+    regex_pattern: 'Jibu:\s*(\-?[0-9\.\,]+)'
   - function: take_first
   name: strict-match
 - filter:
   - function: regex
     group_select: -1
-    regex_pattern: "\\\\boxed\\{(\\-?[0-9\\.,]+)\\}"
+    regex_pattern: '(\-?[0-9\.\,]+)'
   - function: take_first
   - function: normalize_number
   name: flexible-extract

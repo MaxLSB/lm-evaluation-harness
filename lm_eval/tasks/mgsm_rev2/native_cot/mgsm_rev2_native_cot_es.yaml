@@ -1,16 +1,16 @@
 dataset_name: es
 doc_to_target: '{{answer_number|string}}'
-doc_to_text: "{{question}}\nPor favor, razona paso a paso y coloca tu respuesta final dentro de \\boxed{}."
+doc_to_text: "Resuelve este problema matemático. Proporciona los pasos de razonamiento antes de dar la respuesta final en la última línea por sí misma en el formato de \"Respuesta:\". No añadas nada más que la respuesta entera después de \"Respuesta:\".\n{{question}}"
 filter_list:
 - filter:
   - function: regex
-    regex_pattern: La respuesta es (\-?[0-9\.\,]+)
+    regex_pattern: 'Respuesta:\s*(\-?[0-9\.\,]+)'
   - function: take_first
   name: strict-match
 - filter:
   - function: regex
     group_select: -1
-    regex_pattern: "\\\\boxed\\{(\\-?[0-9\\.,]+)\\}"
+    regex_pattern: '(\-?[0-9\.\,]+)'
   - function: take_first
   - function: normalize_number
   name: flexible-extract
