@@ -1,13 +1,9 @@
-dataset_path: MaxLSB/gpqa-fr
-tag: gpqa_fr
+dataset_path: MaxLSB/gpqa_diamond_multilingual
+tag: gpqa_diamond_cot
 output_type: generate_until
 process_docs: !function utils.process_docs
-training_split: train
-# Because huggingface dataset only has train split
-validation_split: train
-test_split: null
-doc_to_text: "Répondez à la question à choix multiples suivante. Sur la dernière ligne de votre réponse, placez la lettre de votre réponse finale dans \\boxed{} (par exemple, \\boxed{A}), en vous assurant que seule la lettre est à l'intérieur. Réfléchissez étape par étape avant de répondre.\n\n{{Question}}\nChoix :\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}"
-doc_to_target: answer
+doc_to_text: "{{problem}}"
+doc_to_target: !function utils.doc_to_target
 filter_list:
   - name: "strict-match"
     filter:
@@ -21,12 +17,11 @@ filter_list:
         ignore_case: true
         ignore_punctuation: true
         regex_pattern: "\\\\boxed\\{([A-D])\\}"
-        # regex_pattern: "(\\([A-Z]\\))"
       - function: "take_first"
 generation_kwargs:
   until:
     - "</s>"
-    - "Question:"
+    - "<|im_end|>"
   do_sample: false
   temperature: 0.0
 num_fewshot: 0

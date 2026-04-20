@@ -1,0 +1,5 @@
+include: _aime24_multilingual_template_yaml
+task: aime24_multilingual_sw
+test_split: sw
+fewshot_split: sw
+doc_to_text: "{{problem}}\nTafadhali fikiri hatua kwa hatua, na uweke jibu lako la mwisho ndani ya \\boxed{}."

@@ -1,0 +1,5 @@
+include: _aime24_multilingual_template_yaml
+task: aime24_multilingual_zh
+test_split: zh
+fewshot_split: zh
+doc_to_text: "{{problem}}\n请一步步推理，并将最终答案放在 \\boxed{} 内。"
