@@ -1,0 +1,5 @@
+include: _aime25_multilingual_template_yaml
+task: aime25_multilingual_de
+test_split: de
+fewshot_split: de
+doc_to_text: "{{problem}}\nBitte denke Schritt für Schritt nach und gib deine endgültige Antwort in \\boxed{} an."

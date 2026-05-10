@@ -1,0 +1,9 @@
+group: aime_combined_multilingual_es
+task:
+  - aime24_multilingual_es
+  - aime25_multilingual_es
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: true
+metadata:
+  version: 0.0
