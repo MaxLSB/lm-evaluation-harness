@@ -464,22 +464,58 @@ class Run(SubCommand):
         def _average_results(all_results: list[dict]) -> dict:
             """Average numeric metrics across runs.
 
-            - Value: mean across runs
-            - Stderr: replaced with stdev/sqrt(n) across runs (cross-run variability)
-            - _std fields: raw stdev across runs
+            For n > 1 runs:
+            - Value (e.g. ``acc,none``): mean across runs.
+            - Stderr (e.g. ``acc_stderr,none``): REPLACED with the sample std
+              (n-1) of the corresponding metric across runs. This is the
+              cross-run variability — the conventional uncertainty for
+              multi-seed evaluation, and what users typically expect from
+              the ``±`` column.
+            - ``_std`` fields (e.g. ``acc_std,none``): also kept explicitly,
+              equal to the new stderr, for back-compat with downstream code.
             """
             avg = deepcopy(all_results[0])
             n = len(all_results)
             for section in ("results", "groups"):
                 for task in avg.get(section, {}):
-                    for key in list(avg[section][task].keys()):
+                    original_keys = list(avg[section][task].keys())
+                    # First pass: replace every numeric field with its mean.
+                    for key in original_keys:
                         val = avg[section][task][key]
                         if not isinstance(val, (int, float)):
                             continue
                         vals = [r[section][task].get(key, val) for r in all_results]
                         avg[section][task][key] = mean(vals)
-                        if n > 1 and "_stderr," not in key:
-                            std_key = key.replace(",", "_std,") if "," in key else key + "_std"
+                    if n <= 1:
+                        continue
+                    # Second pass: rewrite stderr fields as the cross-run
+                    # sample std (n-1) of the corresponding metric, and add
+                    # a parallel ``_std`` field for explicit access.
+                    for key in original_keys:
+                        val = avg[section][task][key]
+                        if not isinstance(val, (int, float)):
+                            continue
+                        is_stderr = ("_stderr," in key) or key.endswith("_stderr")
+                        if is_stderr:
+                            if "_stderr," in key:
+                                metric_key = key.replace("_stderr,", ",")
+                            else:
+                                metric_key = key[: -len("_stderr")]
+                            if metric_key in avg[section][task]:
+                                metric_vals = [
+                                    r[section][task].get(metric_key, 0)
+                                    for r in all_results
+                                ]
+                                avg[section][task][key] = stdev(metric_vals)
+                        else:
+                            std_key = (
+                                key.replace(",", "_std,")
+                                if "," in key
+                                else key + "_std"
+                            )
+                            vals = [
+                                r[section][task].get(key, val) for r in all_results
+                            ]
                             avg[section][task][std_key] = stdev(vals)
             return avg
 
