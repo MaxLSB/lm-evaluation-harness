@@ -1,0 +1,13 @@
+group: belebele_cot
+task:
+  - belebele_en_cot
+  - belebele_fr_cot
+  - belebele_de_cot
+  - belebele_es_cot
+  - belebele_sw_cot
+  - belebele_zh_cot
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: True
+metadata:
+  version: 1.0

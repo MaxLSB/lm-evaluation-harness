@@ -1,0 +1,11 @@
+group: polymath_de
+task:
+  - polymath_de_top
+  - polymath_de_high
+  - polymath_de_medium
+  - polymath_de_low
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: true
+metadata:
+  version: 0.0

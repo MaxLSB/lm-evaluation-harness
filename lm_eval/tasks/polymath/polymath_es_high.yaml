@@ -1,0 +1,6 @@
+include: _polymath_template_yaml
+task: polymath_es_high
+dataset_name: es
+test_split: high
+fewshot_split: high
+doc_to_text: "{{question}}\nPor favor, razona paso a paso y pon tu respuesta final en \\boxed{}."

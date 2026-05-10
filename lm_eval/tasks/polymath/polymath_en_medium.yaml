@@ -1,0 +1,6 @@
+include: _polymath_template_yaml
+task: polymath_en_medium
+dataset_name: en
+test_split: medium
+fewshot_split: medium
+doc_to_text: "{{question}}\nPlease reason step by step, and put your final answer within \\boxed{}."

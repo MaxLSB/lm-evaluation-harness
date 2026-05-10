@@ -1,0 +1,6 @@
+include: _polymath_template_yaml
+task: polymath_zh_medium
+dataset_name: zh
+test_split: medium
+fewshot_split: medium
+doc_to_text: "{{question}}\n请一步步推理，并将最终答案放在 \\boxed{} 内。"

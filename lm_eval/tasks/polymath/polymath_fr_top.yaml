@@ -1,0 +1,6 @@
+include: _polymath_template_yaml
+task: polymath_fr_top
+dataset_name: fr
+test_split: top
+fewshot_split: top
+doc_to_text: "{{question}}\nVeuillez raisonner étape par étape, et mettre votre réponse finale dans \\boxed{}."

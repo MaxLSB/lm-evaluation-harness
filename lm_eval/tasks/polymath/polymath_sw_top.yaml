@@ -1,0 +1,6 @@
+include: _polymath_template_yaml
+task: polymath_sw_top
+dataset_name: sw
+test_split: top
+fewshot_split: top
+doc_to_text: "{{question}}\nTafadhali fikiri hatua kwa hatua, na uweke jibu lako la mwisho ndani ya \\boxed{}."

@@ -1,0 +1,6 @@
+include: _polymath_template_yaml
+task: polymath_de_medium
+dataset_name: de
+test_split: medium
+fewshot_split: medium
+doc_to_text: "{{question}}\nBitte denke Schritt für Schritt nach und gib deine endgültige Antwort in \\boxed{} an."

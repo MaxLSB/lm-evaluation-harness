@@ -1,0 +1,3 @@
+include: _fr_cot_template_yaml
+process_docs: !function utils.process_docs
+task: belebele_fr_cot

@@ -1,0 +1,35 @@
+dataset_path: facebook/belebele
+dataset_name: spa_Latn
+test_split: test
+output_type: generate_until
+doc_to_text: "Lea el siguiente pasaje y responda la pregunta de opción múltiple. En la última línea de su respuesta, coloque la letra de su respuesta final dentro de \\boxed{} (por ejemplo, \\boxed{A}), asegurándose de que solo la letra esté dentro. Piense paso a paso antes de responder.\n\nPasaje: {{flores_passage}}\n\nPregunta: {{question.strip()}}\n(A) {{mc_answer1}}\n(B) {{mc_answer2}}\n(C) {{mc_answer3}}\n(D) {{mc_answer4}}"
+doc_to_target: !function utils.doc_to_target
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "(?<=La respuesta es )(.*)(?=.)"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: "multi_choice_regex"
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "\\\\boxed\\{([A-D])\\}"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0

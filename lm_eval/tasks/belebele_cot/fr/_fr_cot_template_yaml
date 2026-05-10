@@ -1,0 +1,35 @@
+dataset_path: facebook/belebele
+dataset_name: fra_Latn
+test_split: test
+output_type: generate_until
+doc_to_text: "Lisez le passage suivant et répondez à la question à choix multiples. Sur la dernière ligne de votre réponse, placez la lettre de votre réponse finale dans \\boxed{} (par exemple, \\boxed{A}), en veillant à ce que seule la lettre soit à l'intérieur. Réfléchissez étape par étape avant de répondre.\n\nPassage : {{flores_passage}}\n\nQuestion : {{question.strip()}}\n(A) {{mc_answer1}}\n(B) {{mc_answer2}}\n(C) {{mc_answer3}}\n(D) {{mc_answer4}}"
+doc_to_target: !function utils.doc_to_target
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "(?<=La réponse est )(.*)(?=.)"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: "multi_choice_regex"
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "\\\\boxed\\{([A-D])\\}"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0
